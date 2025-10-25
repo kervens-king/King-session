@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Starcore pairing site Dashboard</title>
+  <title>KING Bot Pairing Site Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     :root {
@@ -314,13 +314,13 @@
 </head>
 <body>
   <!-- Blurred Background Image -->
-  <img src="https://i.ibb.co/sdj3NjMD/malvin-xd.jpg" alt="Trashcore bot Background" class="background-image">
+  <img src="https://i.ibb.co/sdj3NjMD/malvin-xd.jpg" alt="KING Bot Background" class="background-image">
 
   <!-- Header with Logo -->
   <header class="header">
     <div class="logo-container">
-      <img src="https://i.ibb.co/FLDpmJqt/malvin-xd.jpg" alt="Starcore bot Logo" class="logo-img">
-      <div class="logo-text">Since-𝟐𝟎24</div>
+      <img src="https://i.ibb.co/FLDpmJqt/malvin-xd.jpg" alt="KING" class="logo-img">
+      <div class="logo-text">KING</div>
     </div>
     
     <!-- Battery Indicator -->
@@ -335,32 +335,33 @@
     <!-- Pairing Box -->
     <div class="box">
       <h2>PAIRING CODE</h2>
-      <h5>STAR XD </h5>
-      <p>Please enter your number with country code e.g 263xxxxxxxx</p>
+      <h5>KING</h5>
+      <p>Veuillez saisir votre numéro avec l'indicatif du pays, par exemple 509xxxxxxxx</p>
       
       <div class="input-container">
         <input type="number" id="number" placeholder="put you number" required>
-        <button id="submit">REQUEST CODE</button>
+        <button id="submit">DEMANDE DE CODE</button>
       </div>
       
       <div id="pair-result">
-        <p id="waiting-message" style="display: none;">Please wait...</p>
+        <p id="waiting-message" style="display: none;">S'il vous plaît, attendez...</p>
       </div>
       
-      <button id="copy-code" onclick="copyCode()">COPY YOUR CODE</button>
+      <button id="copy-code" onclick="copyCode()">COPIEZ VOTRE CODE</button>
     </div>
 
     <!-- Music Player - Positioned below pairing container -->
     <div class="music-player">
-      <h3>PLAY NOW</h3>
-      <div class="music-title">PLAY SONG</div>
-      <div class="music-subtitle">by XD devs</div>
+      <h3>JOUEZ MAINTENANT</h3>
+      <div class="music-title">HYMNE DU ROI</div>
+      <div class="music-subtitle">by KERVENS KING</div>
       <button class="play-btn" onclick="togglePlay()">
         <i class="fas fa-pause" id="play-icon"></i>
       </button>
       <div class="time-display" id="time1">0:00</div>
-      <div class="music-subtitle">Dev Malvin</div>
-      <audio id="audio1" src="https://files.catbox.moe/pjlpd7.mp3" loop></audio>
+      <div class="music-subtitle">Dev Kervens</div>
+      <audio id="audio1" src="https://files.catbox.moe/9snj0e.mp3"     
+     loop></audio>
     </div>
   </div>
 
@@ -380,16 +381,16 @@
       const code = pairResult.innerText.replace('CODE: ', '');
       try {
         await navigator.clipboard.writeText(code);
-        copyCodeBtn.innerText = "COPIED!";
+        copyCodeBtn.innerText = "COPIÉ!";
         copyCodeBtn.style.backgroundColor = "#00ff00";
         copyCodeBtn.style.color = "#000";
         setTimeout(() => {
-          copyCodeBtn.innerText = "COPY CODE";
+          copyCodeBtn.innerText = "COPIER LE CODE";
           copyCodeBtn.style.backgroundColor = "";
           copyCodeBtn.style.color = "";
         }, 2000);
       } catch (err) {
-        console.error('Failed to copy: ', err);
+        console.error('Échec de la copie: ', err);
       }
     }
 
@@ -398,14 +399,14 @@
       e.preventDefault();
       
       if (!numberInput.value) {
-        pairResult.innerHTML = '<p style="color:var(--highlight)">Enter your WhatsApp number without Country Code</p>';
+        pairResult.innerHTML = '<p style="color:var(--highlight)">Entrez votre numéro WhatsApp sans indicatif pays</p>';
         return;
       }
       
       const cleanNumber = numberInput.value.replace(/[^0-9]/g, "");
       
       if (cleanNumber.length < 11) {
-        pairResult.innerHTML = '<p style="color:#ff5555">Invalid Number</p>';
+        pairResult.innerHTML = '<p style="color:#ff5555">Numéro invalide</p>';
         return;
       }
       
@@ -535,4 +536,4 @@
     });
   </script>
 </body>
-  </html>
+</html>
