@@ -77,7 +77,7 @@ router.get('/', async (req, res) => {
 
 ╔═
 ╟   『 𝐂𝐎𝐍𝐓𝐀𝐂𝐓 & 𝐒𝐔𝐏𝐏𝐎𝐑𝐓 』  
-╟  👑 𝐎𝐰𝐧𝐞𝐫: 50942737567  
+╟  👑 𝐎𝐰𝐧𝐞𝐫: 50942588377  
 ╟  💻 𝐑𝐞𝐩𝐨: github.com/Kervens-King
 ╟  👥 𝐖𝐚𝐆𝐫𝐨𝐮𝐩: https://chat.whatsapp.com/GIIGfaym8V7DZZElf6C3Qh
 ╟  📢 𝐖𝐚𝐂𝐡𝐚𝐧𝐧𝐞𝐥: https://whatsapp.com/channel/0029Vb6KikfLdQefJursHm20
