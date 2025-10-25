@@ -1,19 +1,53 @@
-
 {
-    "name": "star",
-    "description": "A whatsApp bot based on Baileysjs linrary (Ts+Js) with Multi Device support",
-    "repository": "https://github.com/XdKing2/star-xd",
-    "logo": "https://i.ibb.co/FLDpmJqt/malvin-xd.jpg",
-    "keywords": ["nodejs", "bot", "whatsapp bot", "whatsapp automation", "multi device"],
+    "name": "KING Bot",
+    "description": "Un bot WhatsApp basé sur la bibliothèque Baileys avec support Multi-Device - Édition KING DIVIN",
+    "repository": "https://github.com/Kervens-King/KING-BOT",
+    "logo": "https://files.catbox.moe/ndj85q.jpg",
+    "keywords": ["nodejs", "bot", "whatsapp bot", "automatisation whatsapp", "multi device", "king-bot", "king-divin"],
     "buildpacks": [
-      {
-        "url": "heroku/nodejs"
+        {
+            "url": "heroku/nodejs"
+        },
+        {
+            "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+        },
+        {
+            "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
+        }
+    ],
+    "env": {
+        "SESSION_ID": {
+            "description": "ID de session pour le bot",
+            "required": false
+        },
+        "PREFIX": {
+            "description": "Préfixe des commandes du bot",
+            "value": ".",
+            "required": false
+        },
+        "MODS": {
+            "description": "Numéros de téléphone des modérateurs (séparés par des virgules)",
+            "required": false
+        },
+        "MONGODB": {
+            "description": "Chaîne de connexion MongoDB pour la base de données",
+            "required": false
+        },
+        "OWNER_NUMBER": {
+            "description": "Numéro du propriétaire du bot",
+            "value": "50942737567",
+            "required": false
+        },
+        "BOT_NAME": {
+            "description": "Nom du bot",
+            "value": "KING DIVIN",
+            "required": false
+        }
     },
-    {
-      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
-    },
-    {
-      "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
-          }
-     ]
-} 
+    "formation": {
+        "web": {
+            "quantity": 1,
+            "size": "eco"
+        }
+    }
+}
