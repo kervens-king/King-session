@@ -1,39 +1,54 @@
-
 {
-    "name": "KING",
-    "description": "A whatsApp bot based on Baileysjs linrary (Ts+Js) with Multi Device support",
-    "repository": "https://github.com/kervens-king/KING",
-    "logo": "https://i.ibb.co/FLDpmJqt/malvin-xd.jpg",
-    "keywords": ["nodejs", "bot", "whatsapp bot", "whatsapp automation", "multi device"],
-    "buildpacks": [
-      {
-        "url": "heroku/nodejs"
-    },
-    {
-      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
-    },
-    {
-      "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
-          }
-     ]
-} 
-            "required": false
-        },
-        "AUTHOR": {
-            "description": "Créateur du bot",
-            "value": "Kervens Aubourg",
-            "required": false
-        }
-    },
-    "formation": {
-        "web": {
-            "quantity": 1,
-            "size": "eco"
-        }
-    },
-    "addons": [
-        {
-            "plan": "mongolab:sandbox"
-        }
-    ]
+  "name": "king-bot",
+  "version": "1.0.0",
+  "description": "KING WhatsApp Bot - Développé par Kervens King",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js", 
+    "build": "echo 'Build non requis'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kervens-king/KING.git"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "whatsapp-bot",
+    "king-bot",
+    "baileys",
+    "kervens-king",
+    "multi-device"
+  ],
+  "author": "Kervens King",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kervens-king/KING/issues"
+  },
+  "homepage": "https://github.com/kervens-king/KING#readme",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.4.0",
+    "express": "^4.18.2",
+    "qrcode-terminal": "^0.12.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "axios": "^1.5.0",
+    "multer": "^1.4.5-lts.1",
+    "pino": "^8.15.1",
+    "qrcode": "^1.5.3",
+    "pastebin-js": "^1.0.1",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.3.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "moment-timezone": "^0.5.34"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.x",
+    "npm": ">=8.x"
+  }
 }
