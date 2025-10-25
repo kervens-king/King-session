@@ -1,9 +1,9 @@
 {
-    "name": "KING Bot",
-    "description": "Un bot WhatsApp basé sur la bibliothèque Baileys avec support Multi-Device - Édition KING DIVIN",
-    "repository": "https://github.com/Kervens-King/KING-BOT",
+    "name": "KING DIVIN Bot",
+    "description": "Bot WhatsApp Légende Divine - Basé sur Baileys avec support Multi-Device",
+    "repository": "https://github.com/kervens-king/KING",
     "logo": "https://files.catbox.moe/ndj85q.jpg",
-    "keywords": ["nodejs", "bot", "whatsapp bot", "automatisation whatsapp", "multi device", "king-bot", "king-divin"],
+    "keywords": ["nodejs", "bot", "whatsapp bot", "whatsapp automation", "multi device", "king", "king-divin"],
     "buildpacks": [
         {
             "url": "heroku/nodejs"
@@ -17,30 +17,28 @@
     ],
     "env": {
         "SESSION_ID": {
-            "description": "ID de session pour le bot",
-            "required": false
+            "description": "ID de session pour le bot KING",
+            "required": false,
+            "value": "KING-DIVIN-SESSION"
         },
         "PREFIX": {
             "description": "Préfixe des commandes du bot",
             "value": ".",
             "required": false
         },
-        "MODS": {
-            "description": "Numéros de téléphone des modérateurs (séparés par des virgules)",
-            "required": false
-        },
-        "MONGODB": {
-            "description": "Chaîne de connexion MongoDB pour la base de données",
-            "required": false
-        },
         "OWNER_NUMBER": {
             "description": "Numéro du propriétaire du bot",
             "value": "50942737567",
-            "required": false
+            "required": true
         },
         "BOT_NAME": {
             "description": "Nom du bot",
-            "value": "KING DIVIN",
+            "value": "KING DIVIN 🤴",
+            "required": false
+        },
+        "AUTHOR": {
+            "description": "Créateur du bot",
+            "value": "Kervens Aubourg",
             "required": false
         }
     },
@@ -49,5 +47,10 @@
             "quantity": 1,
             "size": "eco"
         }
-    }
+    },
+    "addons": [
+        {
+            "plan": "mongolab:sandbox"
+        }
+    ]
 }
