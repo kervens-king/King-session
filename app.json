@@ -1,39 +1,22 @@
+
 {
-    "name": "KING DIVIN Bot",
-    "description": "Bot WhatsApp Légende Divine - Basé sur Baileys avec support Multi-Device",
+    "name": "KING",
+    "description": "A whatsApp bot based on Baileysjs linrary (Ts+Js) with Multi Device support",
     "repository": "https://github.com/kervens-king/KING",
-    "logo": "https://files.catbox.moe/ndj85q.jpg",
-    "keywords": ["nodejs", "bot", "whatsapp bot", "whatsapp automation", "multi device", "king", "king-divin"],
+    "logo": "https://i.ibb.co/FLDpmJqt/malvin-xd.jpg",
+    "keywords": ["nodejs", "bot", "whatsapp bot", "whatsapp automation", "multi device"],
     "buildpacks": [
-        {
-            "url": "heroku/nodejs"
-        },
-        {
-            "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
-        },
-        {
-            "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
-        }
-    ],
-    "env": {
-        "SESSION_ID": {
-            "description": "ID de session pour le bot KING",
-            "required": false,
-            "value": "KING-DIVIN-SESSION"
-        },
-        "PREFIX": {
-            "description": "Préfixe des commandes du bot",
-            "value": ".",
-            "required": false
-        },
-        "OWNER_NUMBER": {
-            "description": "Numéro du propriétaire du bot",
-            "value": "50942737567",
-            "required": true
-        },
-        "BOT_NAME": {
-            "description": "Nom du bot",
-            "value": "KING DIVIN 🤴",
+      {
+        "url": "heroku/nodejs"
+    },
+    {
+      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+    },
+    {
+      "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
+          }
+     ]
+} 
             "required": false
         },
         "AUTHOR": {
