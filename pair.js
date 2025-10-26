@@ -5,13 +5,28 @@ const express = require('express');
 const fs = require('fs');
 let router = express.Router();
 const pino = require('pino');
-const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    delay,
+const { 
+    default: makeWASocket, 
+    useMultiFileAuthState, 
+    delay, 
+    Browsers, 
     makeCacheableSignalKeyStore,
-    Browsers
+    getAggregateVotesInPollMessage,
+    DisconnectReason,
+    WA_DEFAULT_EPHEMERAL,
+    jidNormalizedUser,
+    proto,
+    getDevice,
+    generateWAMessageFromContent,
+    fetchLatestBaileysVersion,
+    makeInMemoryStore,
+    getContentType,
+    generateForwardMessageContent,
+    downloadContentFromMessage,
+    jidDecode 
 } = require('@whiskeysockets/baileys');
+
+const { upload } = require('./mega');
 
 // URL de l'image KING
 const KING_IMAGE_URL = 'https://files.catbox.moe/ndj85q.jpg';
@@ -29,11 +44,7 @@ router.get('/', async (req, res) => {
     if (!num) {
         return res.status(400).send({ error: 'Le numéro est requis' });
     }
-
-    // Nettoyage du numéro
     num = num.replace(/[^0-9]/g, '');
-    
-    // Vérification du format du numéro
     if (num.length < 10) {
         return res.status(400).send({ error: 'Numéro invalide' });
     }
@@ -41,84 +52,82 @@ router.get('/', async (req, res) => {
     async function KING_PAIR_CODE() {
         const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
         try {
-            let Pair_Code_By_KING = makeWASocket({
+            var items = ["Safari"];
+            function selectRandomItem(array) {
+                var randomIndex = Math.floor(Math.random() * array.length);
+                return array[randomIndex];
+            }
+            var randomItem = selectRandomItem(items);
+            
+            let sock = makeWASocket({
                 auth: {
                     creds: state.creds,
-                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' }).child({ level: 'fatal' })),
+                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
                 },
                 printQRInTerminal: false,
-                logger: pino({ level: 'fatal' }).child({ level: 'fatal' }),
-                browser: Browsers.macOS('Safari'),
-                syncFullHistory: false,
                 generateHighQualityLinkPreview: true,
-                markOnlineOnConnect: false
+                logger: pino({ level: "fatal" }).child({ level: "fatal" }),
+                syncFullHistory: false,
+                browser: Browsers.macOS(randomItem)
             });
 
-            if (!Pair_Code_By_KING.authState.creds.registered) {
-                await delay(2000);
-                
-                try {
-                    const code = await Pair_Code_By_KING.requestPairingCode(num);
-                    console.log('Pair code generated:', code);
-                    
-                    if (!res.headersSent) {
-                        await res.send({ 
-                            success: true,
-                            code: code,
-                            sessionId: id,
-                            message: 'Code de pairing généré avec succès'
-                        });
-                    }
-                } catch (pairError) {
-                    console.error('Error generating pair code:', pairError);
-                    if (!res.headersSent) {
-                        await res.status(500).send({ 
-                            error: 'Erreur lors de la génération du code',
-                            details: pairError.message 
-                        });
-                    }
-                    return;
-                }
-            } else {
+            if (!sock.authState.creds.registered) {
+                await delay(1500);
+                const code = await sock.requestPairingCode(num);
                 if (!res.headersSent) {
-                    await res.send({ 
-                        error: 'Déjà enregistré',
-                        message: 'Ce numéro est déjà enregistré' 
-                    });
+                    await res.send({ code });
                 }
-                return;
             }
 
-            Pair_Code_By_KING.ev.on('creds.update', saveCreds);
-            
-            Pair_Code_By_KING.ev.on('connection.update', async (s) => {
-                const { connection, lastDisconnect, qr } = s;
+            sock.ev.on('creds.update', saveCreds);
+            sock.ev.on("connection.update", async (s) => {
+                const { connection, lastDisconnect } = s;
                 
-                console.log('Connection update:', connection);
-                
-                if (connection === 'open') {
-                    console.log('Connexion établie avec succès');
-                    
-                    await delay(3000);
+                if (connection == "open") {
+                    await delay(5000);
                     
                     try {
-                        // Vérifier si la session est valide
-                        if (Pair_Code_By_KING.user && Pair_Code_By_KING.user.id) {
-                            // Envoyer l'image de bienvenue KING
-                            await Pair_Code_By_KING.sendMessage(Pair_Code_By_KING.user.id, {
-                                image: { url: KING_IMAGE_URL },
-                                caption: '👑 *CONNEXION ROYALE ÉTABLIE* 👑\n\nBienvenue dans le royaume KING DIVIN !\nVotre session a été connectée avec succès via Pair Code.'
-                            });
+                        // Upload de la session sur MEGA
+                        let data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
+                        let rf = __dirname + `/temp/${id}/creds.json`;
+                        
+                        function generateRandomText() {
+                            const prefix = "KING";
+                            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                            let randomText = prefix;
+                            for (let i = prefix.length; i < 22; i++) {
+                                const randomIndex = Math.floor(Math.random() * characters.length);
+                                randomText += characters.charAt(randomIndex);
+                            }
+                            return randomText;
+                        }
+                        const randomText = generateRandomText();
 
-                            const KING_MD_TEXT = `
+                        // Upload sur MEGA
+                        const mega_url = await upload(fs.createReadStream(rf), `${sock.user.id}.json`);
+                        const string_session = mega_url.replace('https://mega.nz/file/', '');
+                        let king_session = "king~" + string_session;
+                        
+                        // Envoyer la session ID
+                        let sessionMsg = await sock.sendMessage(sock.user.id, { text: king_session });
 
+                        // Envoyer l'image de bienvenue KING
+                        await sock.sendMessage(sock.user.id, {
+                            image: { url: KING_IMAGE_URL },
+                            caption: '👑 *CONNEXION ROYALE ÉTABLIE* 👑\n\nBienvenue dans le royaume KING DIVIN !\nVotre session a été connectée avec succès via Pair Code.'
+                        });
+
+                        await delay(2000);
+
+                        // Message KING DIVIN formaté
+                        const KING_MD_TEXT = `
 ╭─═━⌬━═─⊹⊱✦⊰⊹─═━⌬━═─ 
 ╎   『 𝐒𝐄𝐒𝐒𝐈𝐎𝐍 𝐂𝐎𝐍𝐍𝐄𝐂𝐓𝐄𝐃 』   
 ╎  ✦ KING DIVIN SESSION
-╎  ✦  BY DEV KERVENS KING
+╎  ✦ BY DEV KERVENS KING
 ╰╴╴╴╴
 
-▌   『 🔐 𝐒𝐄𝐋𝐄𝐂𝐓𝐄𝐃 𝐒𝐄𝐒𝐒𝐈𝐎𝐍 』   
+▌   『 🔐 𝐒𝐄𝐒𝐒𝐈𝐎𝐍 𝐈𝐍𝐅𝐎 』   
 ▌  • Session ID: ${id}
 ▌  • Méthode: 📱 Pair Code
 ▌  • Statut: ✅ ACTIVE
@@ -140,66 +149,65 @@ __________________________________________
 ★彡[ᴅᴏɴ'ᴛ ғᴏʀɢᴇᴛ ᴛᴏ sᴛᴀʀ ᴛʜᴇ ʀᴇᴘᴏ!]彡★
 `;
 
-                            await Pair_Code_By_KING.sendMessage(Pair_Code_By_KING.user.id, { text: KING_MD_TEXT });
+                        let textMsg = await sock.sendMessage(sock.user.id, { text: KING_MD_TEXT });
 
-                            // Message final avec invitations
-                            await Pair_Code_By_KING.sendMessage(Pair_Code_By_KING.user.id, {
-                                image: { url: KING_IMAGE_URL },
-                                caption: '🎊 **INITIATION PAIR CODE TERMINÉE** 🎊\n\nVotre connexion au royaume est confirmée.\n\nRejoignez nos communautés :\n📢 Canal: whatsapp.com/channel/0029Vb6KikfLdQefJursHm20\n👥 Groupe: chat.whatsapp.com/GIIGfaym8V7DZZElf6C3Qh\n\nProfitez de votre séjour royal ! 👑\n— KING DIVIN 🤴'
-                            });
+                        await delay(2000);
 
-                            console.log('Messages de bienvenue envoyés avec succès');
-                        }
-                    } catch (messageError) {
-                        console.error('Error sending welcome messages:', messageError);
-                    }
+                        // Message final avec invitations
+                        await sock.sendMessage(sock.user.id, {
+                            text: '🎊 **INITIATION PAIR CODE TERMINÉE** 🎊\n\nVotre connexion au royaume est confirmée.\n\nRejoignez nos communautés :\n📢 Canal: https://whatsapp.com/channel/0029Vb6KikfLdQefJursHm20\n👥 Groupe: https://chat.whatsapp.com/GIIGfaym8V7DZZElf6C3Qh\n\nProfitez de votre séjour royal ! 👑\n— KING DIVIN 🤴',
+                            contextInfo: {
+                                externalAdReply: {
+                                    title: "👑 KING DIVIN",
+                                    body: "Session Connected Successfully",
+                                    thumbnailUrl: KING_IMAGE_URL,
+                                    sourceUrl: "https://whatsapp.com/channel/0029Vb6KikfLdQefJursHm20",
+                                    mediaType: 1,
+                                    renderLargerThumbnail: true
+                                }  
+                            }
+                        }, { quoted: textMsg });
 
-                    await delay(2000);
-                    
-                    try {
-                        await Pair_Code_By_KING.ws.close();
-                        console.log('Connexion fermée proprement');
-                    } catch (closeError) {
-                        console.error('Error closing connection:', closeError);
-                    }
-                    
-                    try {
-                        await removeFile('./temp/' + id);
-                        console.log('Fichiers temporaires nettoyés');
-                    } catch (cleanError) {
-                        console.error('Error cleaning temp files:', cleanError);
-                    }
-                    
-                } else if (connection === 'close') {
-                    console.log('Connexion fermée');
-                    if (lastDisconnect && lastDisconnect.error) {
-                        console.error('Dernière déconnexion:', lastDisconnect.error);
+                    } catch (e) {
+                        console.error("Error:", e);
+                        // Message d'erreur stylisé
+                        let errorMsg = await sock.sendMessage(sock.user.id, { text: "❌ Erreur: " + e.message });
                         
-                        // Reconnexion seulement pour certaines erreurs
-                        if (lastDisconnect.error.output?.statusCode !== 401) {
-                            console.log('Tentative de reconnexion...');
-                            await delay(10000);
-                            KING_PAIR_CODE();
-                        } else {
-                            console.log('Erreur d\'authentification, pas de reconnexion');
-                            await removeFile('./temp/' + id);
-                        }
+                        await sock.sendMessage(sock.user.id, {
+                            text: "❌ *Erreur lors du processus*\n\nMais votre session KING DIVIN est bien connectée ! 👑\n\nContact: 50942588377",
+                            contextInfo: {
+                                externalAdReply: {
+                                    title: "👑 KING DIVIN",
+                                    body: "Session Connected",
+                                    thumbnailUrl: KING_IMAGE_URL,
+                                    sourceUrl: "https://github.com/Kervens-King",
+                                    mediaType: 1
+                                }  
+                            }
+                        }, { quoted: errorMsg });
                     }
+
+                    await delay(100);
+                    await sock.ws.close();
+                    await removeFile('./temp/' + id);
+                    console.log(`👑 ${sock.user.id} KING DIVIN Connected ✅`);
+                    await delay(100);
+                    process.exit();
+
+                } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401) {
+                    await delay(10000);
+                    KING_PAIR_CODE();
                 }
             });
-
         } catch (err) {
-            console.error('Erreur générale:', err);
+            console.log("Service restarted - KING DIVIN");
             await removeFile('./temp/' + id);
             if (!res.headersSent) {
-                await res.status(500).send({ 
-                    error: 'Service Currently Unavailable',
-                    details: err.message 
-                });
+                await res.send({ code: "Service Currently Unavailable" });
             }
         }
     }
-    
+   
     return await KING_PAIR_CODE();
 });
 
