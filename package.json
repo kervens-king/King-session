@@ -2,13 +2,13 @@
     "name": "king-bot",
     "description": "KING DIVIN - Légende Divine WhatsApp Bot",
     "version": "1.0.0",
-    "main": "./server.js",
+    "main": "./index.js",
     "engines": { 
         "node": ">=18.0.0"
     },
     "scripts": {
-        "start": "node server.js",
-        "dev": "NODE_ENV=development node server.js"
+        "start": "node index.js",
+        "dev": "NODE_ENV=development node index.js"
     },
     "author": "Kervens Aubourg",
     "license": "MIT",
