@@ -1,35 +1,29 @@
 {
     "name": "king-bot",
-    "description": "king-divin-session",
+    "description": "KING DIVIN - Légende Divine WhatsApp Bot",
     "version": "1.0.0",
-    "main": "./index.js",
+    "main": "./server.js",
     "engines": { 
-        "npm": ">=9.7.2",
-        "node": ">=20.0.0"
+        "node": ">=18.0.0"
     },
     "scripts": {
-        "start": "node index.js"
+        "start": "node server.js",
+        "dev": "NODE_ENV=development node server.js"
     },
-    "author": "Kervens King",
-    "license": "GPL-3.0 license",
+    "author": "Kervens Aubourg",
+    "license": "MIT",
     "dependencies": {
-        "baileys-pro": "latest",
-        "maher-zubair-baileys": "^6.6.5",
-        "@whiskeysockets/baileys": "github:Kervens-King/KING-Baileys",
+        "@whiskeysockets/baileys": "^6.4.0",
+        "express": "^4.18.2",
         "qrcode": "^1.5.3",
-        "awesome-phonenumber": "^2.64.0",
-        "pino": "^8.1.0",
-        "phone": "3.1.30",
-        "body-parser": "^1.20.1",
-        "pastebin-js": "^1.0.6",
-        "express": "^4.18.1",
-        "path": "^0.12.7",
-        "baileys-elite": "latest",
-        "jimp": "^0.16.13"
+        "pino": "^8.15.0",
+        "dotenv": "^16.3.1",
+        "axios": "^1.5.0",
+        "pastebin-js": "^1.0.6"
     },
     "keywords": [
         "whatsapp-bot",
-        "king-bot",
+        "king-bot", 
         "whatsapp-automation",
         "baileys",
         "king-divin"
@@ -37,6 +31,5 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/Kervens-King/KING.git"
-    },
-    "homepage": "https://github.com/Kervens-King/KING#readme"
+    }
 }
