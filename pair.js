@@ -2,14 +2,13 @@ import express from 'express';
 import fs from 'fs';
 import pino from 'pino';
 import { makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
-import pn from 'awesome-phonenumber';
 
 const router = express.Router();
 
 // URL de l'image KING
 const KING_IMAGE_URL = 'https://files.catbox.moe/ndj85q.jpg';
 
-// Ensure the session directory exists
+// Helper function to remove files
 function removeFile(FilePath) {
     try {
         if (!fs.existsSync(FilePath)) return false;
@@ -19,26 +18,36 @@ function removeFile(FilePath) {
     }
 }
 
+// Simple phone number validation
+function isValidPhoneNumber(num) {
+    // Remove all non-digit characters
+    const cleanNum = num.replace(/[^0-9]/g, '');
+    // Basic validation: at least 10 digits, max 15
+    return cleanNum.length >= 10 && cleanNum.length <= 15;
+}
+
 router.get('/', async (req, res) => {
     let num = req.query.number;
-    let dirs = './' + (num || `session`);
-
-    // Remove existing session if present
-    await removeFile(dirs);
+    
+    if (!num) {
+        return res.status(400).send({ code: 'Le numéro est requis' });
+    }
 
     // Clean the phone number - remove any non-digit characters
     num = num.replace(/[^0-9]/g, '');
 
-    // Validate the phone number using awesome-phonenumber
-    const phone = pn('+' + num);
-    if (!phone.isValid()) {
+    // Validate the phone number
+    if (!isValidPhoneNumber(num)) {
         if (!res.headersSent) {
-            return res.status(400).send({ code: 'Numéro de téléphone invalide. Veuillez entrer votre numéro international complet (ex: 50942588377 pour Haïti) sans + ou espaces.' });
+            return res.status(400).send({ code: 'Numéro de téléphone invalide. Veuillez entrer un numéro valide (ex: 50942588377).' });
         }
         return;
     }
-    // Use the international number format (E.164, without '+')
-    num = phone.getNumber('e164').replace('+', '');
+
+    let dirs = './temp/' + num;
+
+    // Remove existing session if present
+    await removeFile(dirs);
 
     async function KING_PAIR_CODE() {
         const { state, saveCreds } = await useMultiFileAuthState(dirs);
@@ -167,14 +176,12 @@ router.get('/', async (req, res) => {
 
             if (!KingBot.authState.creds.registered) {
                 await delay(3000); // Wait 3 seconds before requesting pairing code
-                num = num.replace(/[^\d+]/g, '');
-                if (num.startsWith('+')) num = num.substring(1);
 
                 try {
                     let code = await KingBot.requestPairingCode(num);
                     code = code?.match(/.{1,4}/g)?.join('-') || code;
                     if (!res.headersSent) {
-                        console.log({ num, code });
+                        console.log('📱 Code pair KING généré:', { num, code });
                         await res.send({ code });
                     }
                 } catch (error) {
