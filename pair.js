@@ -1,7 +1,7 @@
-import express from 'express';
-import fs from 'fs';
-import pino from 'pino';
-import { makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
+const express = require('express');
+const fs = require('fs');
+const pino = require('pino');
+const { makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 
 const router = express.Router();
 
@@ -221,4 +221,4 @@ process.on('uncaughtException', (err) => {
     console.log('Exception KING: ', err);
 });
 
-export default router;
+module.exports = router;
