@@ -1,77 +1,96 @@
-const PastebinAPI = require('pastebin-js');
-const pastebin = new PastebinAPI('EMWTMkQAVfJa9kM-MRUrxd5Oku1U7pgL');
-const { makeid } = require('./id');
-const express = require('express');
-const fs = require('fs');
-const pino = require('pino');
-const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    fetchLatestBaileysVersion,
-    delay,
-    makeCacheableSignalKeyStore,
-} = require("@whiskeysockets/baileys");
+import express from 'express';
+import fs from 'fs';
+import pino from 'pino';
+import { makeWASocket, useMultiFileAuthState, delay, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
+import pn from 'awesome-phonenumber';
 
 const router = express.Router();
 
 // URL de l'image KING
 const KING_IMAGE_URL = 'https://files.catbox.moe/ndj85q.jpg';
 
-// Helper function to remove files
-function removeFile(filePath) {
-    if (!fs.existsSync(filePath)) return false;
-    fs.rmSync(filePath, { recursive: true, force: true });
+// Ensure the session directory exists
+function removeFile(FilePath) {
+    try {
+        if (!fs.existsSync(FilePath)) return false;
+        fs.rmSync(FilePath, { recursive: true, force: true });
+    } catch (e) {
+        console.error('Error removing file:', e);
+    }
 }
 
-// Route handler
 router.get('/', async (req, res) => {
-    const id = makeid();
     let num = req.query.number;
+    let dirs = './' + (num || `session`);
 
-    // Validation du numéro
-    if (!num) {
-        return res.status(400).send({ error: 'Le numéro est requis' });
-    }
+    // Remove existing session if present
+    await removeFile(dirs);
+
+    // Clean the phone number - remove any non-digit characters
     num = num.replace(/[^0-9]/g, '');
-    if (num.length < 10) {
-        return res.status(400).send({ error: 'Numéro invalide' });
+
+    // Validate the phone number using awesome-phonenumber
+    const phone = pn('+' + num);
+    if (!phone.isValid()) {
+        if (!res.headersSent) {
+            return res.status(400).send({ code: 'Numéro de téléphone invalide. Veuillez entrer votre numéro international complet (ex: 50942588377 pour Haïti) sans + ou espaces.' });
+        }
+        return;
     }
+    // Use the international number format (E.164, without '+')
+    num = phone.getNumber('e164').replace('+', '');
 
     async function KING_PAIR_CODE() {
-        const { version } = await fetchLatestBaileysVersion();
-        const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
+        const { state, saveCreds } = await useMultiFileAuthState(dirs);
+
         try {
-            const client = makeWASocket({
-                printQRInTerminal: false,
+            const { version, isLatest } = await fetchLatestBaileysVersion();
+            let KingBot = makeWASocket({
                 version,
-                logger: pino({ level: 'silent' }),
-                browser: ['Ubuntu', 'Chrome', '20.0.04'],
-                auth: state,
+                auth: {
+                    creds: state.creds,
+                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
+                },
+                printQRInTerminal: false,
+                logger: pino({ level: "fatal" }).child({ level: "fatal" }),
+                browser: Browsers.windows('Chrome'),
+                markOnlineOnConnect: false,
+                generateHighQualityLinkPreview: false,
+                defaultQueryTimeoutMs: 60000,
+                connectTimeoutMs: 60000,
+                keepAliveIntervalMs: 30000,
+                retryRequestDelayMs: 250,
+                maxRetries: 5,
             });
 
-            if (!client.authState.creds.registered) {
-                await delay(1500);
-                const code = await client.requestPairingCode(num);
+            KingBot.ev.on('connection.update', async (update) => {
+                const { connection, lastDisconnect, isNewLogin, isOnline } = update;
 
-                if (!res.headersSent) {
-                    await res.send({ code });
-                }
-            }
-
-            client.ev.on('creds.update', saveCreds);
-            client.ev.on('connection.update', async (s) => {
-                const { connection, lastDisconnect } = s;
                 if (connection === 'open') {
-                    await client.sendMessage(client.user.id, { text: `Génération de votre session KING DIVIN, patientez... 👑` });
-                    await delay(6000);
+                    console.log("✅ KING DIVIN Connecté avec succès!");
+                    console.log("📱 Envoi de la session KING...");
                     
-                    const data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
-                    await delay(5000);
-                    const b64data = Buffer.from(data).toString('base64');
-                    const session = await client.sendMessage(client.user.id, { text: 'king~' + b64data });
+                    try {
+                        const sessionData = fs.readFileSync(dirs + '/creds.json');
 
-                    // Message KING DIVIN formaté
-                    const KING_MD_TEXT = `
+                        // Send session file to user
+                        const userJid = jidNormalizedUser(num + '@s.whatsapp.net');
+                        await KingBot.sendMessage(userJid, {
+                            document: sessionData,
+                            mimetype: 'application/json',
+                            fileName: 'king_session.json'
+                        });
+                        console.log("📄 Session KING envoyée avec succès");
+
+                        // Envoyer l'image KING avec caption
+                        await KingBot.sendMessage(userJid, {
+                            image: { url: KING_IMAGE_URL },
+                            caption: `👑 *KING DIVIN - Légende Divine* 👑\n\nVotre session a été connectée avec succès !\n\nRejoignez le royaume :\n📢 Canal: https://whatsapp.com/channel/0029Vb6KikfLdQefJursHm20\n👥 Groupe: https://chat.whatsapp.com/GIIGfaym8V7DZZElf6C3Qh\n\n« Au stade le plus tragique et plus belle » ✨`
+                        });
+                        console.log("👑 Image KING envoyée avec succès");
+
+                        // Message KING DIVIN formaté
+                        const KING_MD_TEXT = `
 
 ╭─✦─╮𝐊𝐈𝐍𝐆 𝐃𝐈𝐕𝐈𝐍 𝐒𝐄𝐒𝐒𝐈𝐎𝐍╭─✦─╮
 │
@@ -80,9 +99,9 @@ router.get('/', async (req, res) => {
 │   ✦ Statut : ✅ **ACTIVE & FONCTIONNELLE**
 │
 │   🔐 *INFORMATIONS SESSION*
-│   ├• ID : ${id}
 │   ├• Méthode : Pair Code 📱
-│   └• Plateforme : WhatsApp Web
+│   ├• Plateforme : WhatsApp Web
+│   └• Version : KING DIVIN v1.0
 │
 │   📞 *CONTACT ROYAL*
 │   ├• 👑 Kervens : 50942588377
@@ -102,28 +121,75 @@ router.get('/', async (req, res) => {
 ★彡 [ᴅᴇᴠᴇʟᴏᴘᴘé ᴘᴀʀ ᴋᴇʀᴠᴇɴs] 彡★
 `;
 
-                    await client.sendMessage(client.user.id, { text: KING_MD_TEXT }, { quoted: session });
+                        await KingBot.sendMessage(userJid, {
+                            text: KING_MD_TEXT
+                        });
+                        console.log("📝 Message KING envoyé avec succès");
 
-                    // Envoyer l'image KING
-                    await client.sendMessage(client.user.id, {
-                        image: { url: KING_IMAGE_URL },
-                        caption: '👑 *KING DIVIN - Légende Divine* 👑\n\nVotre session a été connectée avec succès !\n\nRejoignez le royaume :\n📢 Canal: https://whatsapp.com/channel/0029Vb6KikfLdQefJursHm20\n👥 Groupe: https://chat.whatsapp.com/GIIGfaym8V7DZZElf6C3Qh\n\n« Au stade le plus tragique et plus belle » ✨'
-                    });
-                    
-                    await delay(100);
-                    await client.ws.close();
-                    removeFile('./temp/' + id);
-                    console.log(`👑 ${client.user.id} KING DIVIN Connected ✅`);
-                } else if (connection === 'close' && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode !== 401) {
-                    await delay(10000);
-                    KING_PAIR_CODE();
+                        // Message d'avertissement
+                        await KingBot.sendMessage(userJid, {
+                            text: `⚠️ *ATTENTION - SESSION KING DIVIN* ⚠️\n\nNe partagez PAS ce fichier avec qui que ce soit !\nCette session contient vos accès personnels.\n\n👑 Gardez-la en sécurité comme un trésor royal !\n\n© 2024 KING DIVIN - Tous droits réservés`
+                        });
+                        console.log("⚠️ Message d'avertissement envoyé");
+
+                        // Clean up session after use
+                        console.log("🧹 Nettoyage de la session KING...");
+                        await delay(1000);
+                        removeFile(dirs);
+                        console.log("✅ Session KING nettoyée avec succès");
+                        console.log("🎉 Processus KING DIVIN terminé avec succès!");
+                    } catch (error) {
+                        console.error("❌ Erreur envoi messages KING:", error);
+                        // Still clean up session even if sending fails
+                        removeFile(dirs);
+                    }
+                }
+
+                if (isNewLogin) {
+                    console.log("🔐 Nouvelle connexion via pair code KING");
+                }
+
+                if (isOnline) {
+                    console.log("📶 Client KING en ligne");
+                }
+
+                if (connection === 'close') {
+                    const statusCode = lastDisconnect?.error?.output?.statusCode;
+
+                    if (statusCode === 401) {
+                        console.log("❌ Déconnecté de WhatsApp. Génération d'un nouveau code pair.");
+                    } else {
+                        console.log("🔁 Connexion fermée - redémarrage KING...");
+                        KING_PAIR_CODE();
+                    }
                 }
             });
+
+            if (!KingBot.authState.creds.registered) {
+                await delay(3000); // Wait 3 seconds before requesting pairing code
+                num = num.replace(/[^\d+]/g, '');
+                if (num.startsWith('+')) num = num.substring(1);
+
+                try {
+                    let code = await KingBot.requestPairingCode(num);
+                    code = code?.match(/.{1,4}/g)?.join('-') || code;
+                    if (!res.headersSent) {
+                        console.log({ num, code });
+                        await res.send({ code });
+                    }
+                } catch (error) {
+                    console.error('Erreur génération code pair KING:', error);
+                    if (!res.headersSent) {
+                        res.status(503).send({ code: 'Échec de génération du code pair. Vérifiez votre numéro et réessayez.' });
+                    }
+                }
+            }
+
+            KingBot.ev.on('creds.update', saveCreds);
         } catch (err) {
-            console.log('Service restarted - KING DIVIN', err);
-            removeFile('./temp/' + id);
+            console.error('Erreur initialisation session KING:', err);
             if (!res.headersSent) {
-                await res.send({ code: 'Service Currently Unavailable' });
+                res.status(503).send({ code: 'Service KING Indisponible' });
             }
         }
     }
@@ -131,4 +197,21 @@ router.get('/', async (req, res) => {
     await KING_PAIR_CODE();
 });
 
-module.exports = router;
+// Global uncaught exception handler
+process.on('uncaughtException', (err) => {
+    let e = String(err);
+    if (e.includes("conflict")) return;
+    if (e.includes("not-authorized")) return;
+    if (e.includes("Socket connection timeout")) return;
+    if (e.includes("rate-overlimit")) return;
+    if (e.includes("Connection Closed")) return;
+    if (e.includes("Timed Out")) return;
+    if (e.includes("Value not found")) return;
+    if (e.includes("Stream Errored")) return;
+    if (e.includes("Stream Errored (restart required)")) return;
+    if (e.includes("statusCode: 515")) return;
+    if (e.includes("statusCode: 503")) return;
+    console.log('Exception KING: ', err);
+});
+
+export default router;
